@@ -1,0 +1,30 @@
+import { BASE_URL } from "@/lib/constants";
+import { notFound } from "next/navigation";
+import React from "react";
+
+const EventDetailsPage = async ({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) => {
+  const { slug } = await params;
+
+  const request = await fetch(`${BASE_URL}/events/${slug}`);
+
+  const { event } = await request.json();
+
+  if (!event) {
+    return notFound();
+  }
+
+  return (
+    <section id="event">
+      <h1>
+        Event Details: <br />
+        {slug}
+      </h1>
+    </section>
+  );
+};
+
+export default EventDetailsPage;

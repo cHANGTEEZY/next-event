@@ -7,6 +7,9 @@ export type EventItem = {
   time: string;
 };
 
+export const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000/api";
+
 export const events: EventItem[] = [
   {
     slug: "react-conf-2024",

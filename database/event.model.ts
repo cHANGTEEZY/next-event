@@ -36,7 +36,6 @@ const EventSchema = new Schema<IEvent>(
     },
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -164,9 +163,9 @@ EventSchema.pre("save", function (next) {
 });
 
 /**
- * Create index on slug for faster queries
+ * Create unique index on slug for faster queries and uniqueness constraint
  */
-EventSchema.index({ slug: 1 });
+EventSchema.index({ slug: 1 }, { unique: true });
 
 /**
  * Event Model
