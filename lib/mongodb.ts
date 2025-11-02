@@ -56,6 +56,10 @@ async function connectDB(): Promise<mongoose.Connection> {
       bufferCommands: false, // Disable mongoose buffering to fail fast if connection is lost
     };
 
+    if (!MONGODB_URI) {
+      throw new Error("MONGODB_URI is not defined");
+    }
+
     cached.promise = mongoose
       .connect(MONGODB_URI as string, opts)
       .then((mongooseInstance) => {
