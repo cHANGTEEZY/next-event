@@ -1,54 +1,82 @@
 "use client";
-import React from "react";
 
-const BookEvent = () => {
-  const [email, setEmail] = React.useState("");
-  const [submitted, setSubmitted] = React.useState(false);
+import { useState } from "react";
+import { createBooking } from "@/lib/actions/booking.actions";
+import posthog from "posthog-js";
 
-  const handleSubmit = (data: { email: string }) => {
-    console.log("Booking submitted for email:", data.email);
+const BookEvent = ({ eventId, slug }: { eventId: string; slug: string }) => {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    setTimeout(() => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const { success, error: bookingError } = await createBooking({
+      eventId,
+      email,
+    });
+
+    setLoading(false);
+
+    if (success) {
       setSubmitted(true);
-    }, 2000);
+      posthog.capture("event_booked", { eventId, slug, email });
+    } else {
+      setError(bookingError || "Booking creation failed");
+      posthog.capture("booking_failed", {
+        eventId,
+        slug,
+        email,
+        error: bookingError,
+      });
+    }
   };
 
   return (
     <div id="book-event">
       {submitted ? (
-        <div className="confirmation-message">
-          <p className="text-sm">
-            We have received your booking request. A confirmation email has been
-            sent to {email}.
-          </p>
-        </div>
+        <p className="text-sm">Thank you for signing up!</p>
       ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSubmitted(true);
-            handleSubmit({ email });
-          }}
-          className="booking-form"
-        >
+        <form onSubmit={handleSubmit}>
+          {error && (
+            <div
+              className="error-message"
+              style={{
+                color: "#ef4444",
+                fontSize: "0.875rem",
+                marginBottom: "1rem",
+                padding: "0.5rem",
+                backgroundColor: "#fee2e2",
+                borderRadius: "0.375rem",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
           <div>
             <label htmlFor="email">Email Address</label>
             <input
               type="email"
-              id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              id="email"
               placeholder="Enter your email address"
+              required
+              disabled={loading}
             />
           </div>
-          <button type="submit" className="button-submit">
-            Submit
+
+          <button type="submit" className="button-submit" disabled={loading}>
+            {loading ? "Submitting..." : "Submit"}
           </button>
         </form>
       )}
     </div>
   );
 };
-
 export default BookEvent;

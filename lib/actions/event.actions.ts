@@ -20,8 +20,6 @@ export const getSimilarEventBySlug = async (slug: string) => {
       .limit(3)
       .lean();
 
-    console.log("Similar Events:", similarEvents);
-
     return similarEvents;
   } catch (error) {
     console.error("Error fetching similar events:", error);
