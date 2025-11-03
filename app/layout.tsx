@@ -5,6 +5,7 @@ import LightRays from "@/components/LightRays";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { PostHogProvider, PostHogPageView } from "./providers";
+import { Suspense } from "react";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-schibsted-grotesk",
@@ -32,7 +33,9 @@ export default function RootLayout({
         className={`${schibstedGrotesk.variable} ${martianMono.variable} min-h-screen  antialiased`}
       >
         <PostHogProvider>
-          <PostHogPageView />
+          <Suspense fallback={null}>
+            <PostHogPageView />
+          </Suspense>
           <Navbar />
           <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
             <LightRays
