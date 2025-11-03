@@ -2,9 +2,17 @@ import { EventItem } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 
-const EventCard = ({ title, image, slug, location, date, time }: EventItem) => {
+const EventCard = ({
+  title,
+  image,
+  slug,
+  location,
+  date,
+  time,
+  isNested,
+}: EventItem) => {
   return (
-    <Link href={`events/${slug}`} id="event-card">
+    <Link href={`${isNested ? "/events" : "events"}/${slug}`} id="event-card">
       <Image
         src={image}
         alt={title}

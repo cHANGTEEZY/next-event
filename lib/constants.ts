@@ -5,6 +5,7 @@ export type EventItem = {
   location: string;
   date: string;
   time: string;
+  isNested?: boolean;
 };
 
 export const BASE_URL =
