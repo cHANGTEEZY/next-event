@@ -1,18 +1,22 @@
 import EventCard from "@/components/EventCard";
 import ExploreBtn from "@/components/ExploreBtn";
-import { IEvent } from "@/database";
-import { BASE_URL } from "@/lib/constants";
+import { Event } from "@/database";
+import connectDB from "@/lib/mongodb";
 import { cacheLife } from "next/cache";
 
 const Home = async () => {
   "use cache";
+
   cacheLife("hours");
 
-  const response = await fetch(`${BASE_URL}/events`, {
-    cache: "no-store",
-  });
+  let events: any[] = [];
 
-  const { events } = await response.json();
+  try {
+    await connectDB();
+    events = await Event.find().sort({ createdAt: -1 }).limit(12).lean();
+  } catch (error) {
+    console.error("Error fetching events:", error);
+  }
 
   return (
     <section>
@@ -27,10 +31,9 @@ const Home = async () => {
       <div className="mt-20 space-y-7 ">
         <h3>Featured Events</h3>
         <ul className="events it">
-          {events &&
-            events.length > 0 &&
-            events.map((event: IEvent) => (
-              <li key={event.title} className="list-none">
+          {events && events.length > 0 ? (
+            events.map((event) => (
+              <li key={event._id.toString()} className="list-none">
                 <EventCard
                   title={event.title}
                   image={event.image}
@@ -40,7 +43,12 @@ const Home = async () => {
                   time={event.time}
                 />
               </li>
-            ))}
+            ))
+          ) : (
+            <p className="text-center text-light-200">
+              No events available at the moment.
+            </p>
+          )}
         </ul>
       </div>
     </section>
