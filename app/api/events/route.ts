@@ -1,4 +1,4 @@
-import { Event, IEvent } from "@/database";
+import { Event } from "@/database";
 import connectDB from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
@@ -13,20 +13,6 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
 
-    let event;
-
-    try {
-      event = Object.fromEntries(formData.entries()) as unknown as IEvent;
-    } catch (error) {
-      return NextResponse.json(
-        {
-          message: "Inavalid form data",
-          error: error instanceof Error ? error.message : String(error),
-        },
-        { status: 400 }
-      );
-    }
-
     const file = formData.get("image") as File | null;
 
     if (!file) {
@@ -39,11 +25,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let tags = JSON.parse(formData.get("tags") as string);
-    let agenda = JSON.parse(formData.get("agenda") as string);
+    // Extract agenda and tags as arrays
+    const agenda = formData.getAll("agenda") as string[];
+    const tags = formData.getAll("tags") as string[];
 
+    // Extract other fields
+    const eventData = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+      overview: formData.get("overview") as string,
+      venue: formData.get("venue") as string,
+      location: formData.get("location") as string,
+      date: formData.get("date") as string,
+      time: formData.get("time") as string,
+      mode: formData.get("mode") as string,
+      audience: formData.get("audience") as string,
+      organizer: formData.get("organizer") as string,
+      agenda,
+      tags,
+    };
+
+    // Upload image to Cloudinary
     const imageData = await file.arrayBuffer();
-
     const buffer = Buffer.from(imageData);
 
     const uploadResult = await new Promise<{ secure_url: string }>(
@@ -68,24 +71,21 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Assign the secure URL to the event image
-    event.image = uploadResult.secure_url;
-
+    // Create event with uploaded image URL
     const createdEvent = await Event.create({
-      ...event,
-      tags,
-      agenda,
+      ...eventData,
+      image: uploadResult.secure_url,
     });
 
     return NextResponse.json(
       {
-        message: "Event create successfully",
+        message: "Event created successfully",
         event: createdEvent,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error fetching events:", error);
+    console.error("Error creating event:", error);
     return NextResponse.json(
       {
         message: "Event Creation Failed",
