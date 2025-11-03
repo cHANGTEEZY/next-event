@@ -39,6 +39,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let tags = JSON.parse(formData.get("tags") as string);
+    let agenda = JSON.parse(formData.get("agenda") as string);
+
     const imageData = await file.arrayBuffer();
 
     const buffer = Buffer.from(imageData);
@@ -68,7 +71,11 @@ export async function POST(req: NextRequest) {
     // Assign the secure URL to the event image
     event.image = uploadResult.secure_url;
 
-    const createdEvent = await Event.create(event);
+    const createdEvent = await Event.create({
+      ...event,
+      tags,
+      agenda,
+    });
 
     return NextResponse.json(
       {

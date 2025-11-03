@@ -1,10 +1,13 @@
 import EventCard from "@/components/EventCard";
 import ExploreBtn from "@/components/ExploreBtn";
 import { IEvent } from "@/database";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import { BASE_URL } from "@/lib/constants";
+import { cacheLife } from "next/cache";
 
 const Home = async () => {
+  "use cache";
+  cacheLife("hours");
+
   const response = await fetch(`${BASE_URL}/events`, {
     cache: "no-store",
   });
@@ -23,11 +26,11 @@ const Home = async () => {
 
       <div className="mt-20 space-y-7 ">
         <h3>Featured Events</h3>
-        <ul className="events">
+        <ul className="events it">
           {events &&
             events.length > 0 &&
             events.map((event: IEvent) => (
-              <li key={event.title}>
+              <li key={event.title} className="list-none">
                 <EventCard
                   title={event.title}
                   image={event.image}
