@@ -5,8 +5,8 @@ import BookEvent from "@/components/BookEvent";
 import EventCard from "@/components/EventCard";
 import { cacheLife } from "next/cache";
 import { getSimilarEventBySlug } from "@/lib/actions/event.actions";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import { Event } from "@/database";
+import connectDB from "@/lib/mongodb";
 
 const EventDetailItem = ({
   icon,
@@ -49,27 +49,10 @@ const EventDetails = async ({ params }: { params: Promise<string> }) => {
   cacheLife("hours");
   const slug = await params;
 
-  console.log("Fetching event with slug:", slug);
-  console.log("BASE_URL:", BASE_URL);
-
   let event;
   try {
-    const url = `${BASE_URL}/events/${slug}`;
-    console.log("Full URL:", url);
-
-    const request = await fetch(url, {
-      next: { revalidate: 60 },
-    });
-
-    if (!request.ok) {
-      if (request.status === 404) {
-        return notFound();
-      }
-      throw new Error(`Failed to fetch event: ${request.statusText}`);
-    }
-
-    const response = await request.json();
-    event = response.event;
+    await connectDB();
+    event = await Event.findOne({ slug }).lean();
 
     if (!event) {
       return notFound();
